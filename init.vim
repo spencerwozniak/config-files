@@ -80,3 +80,6 @@ nmap <F4> :TagbarToggle<CR>
 let g:dashboard_default_executive ='fzf'
 
 :set completeopt-=preview " For No Previews
+
+" Clear search register on startup so viminfo doesn't restore old patterns
+autocmd VimEnter * let @/ = ""
