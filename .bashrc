@@ -56,7 +56,9 @@ if [ -n "$force_color_prompt" ]; then
     fi
 fi
 
-export PS1='[ \e[0;32m\u \e[0;34m\W \e[0m]\e[0m$ '
+# Prompt: every non-printing sequence must be in \[ \] so readline/history length is correct.
+# Using \033 (not \e) for portability. Prevents up-arrow history display bugs.
+export PS1='[ \[\033[0;32m\]\u \[\033[0;34m\]\W \[\033[0m\]]\[\033[0m\]$ '
 
 # if [ "$color_prompt" = yes ]; then
 #     PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
@@ -117,3 +119,11 @@ if ! shopt -oq posix; then
     . /etc/bash_completion
   fi
 fi
+
+# Prevent PROMPT_COMMAND from corrupting readline/history (e.g. dynamic prompts that echo).
+# Must run last so it clears any PROMPT_COMMAND set by completion or other sourced files.
+unset PROMPT_COMMAND 2>/dev/null
+export PATH="$HOME/.npm-global/bin:$PATH"
+
+# OpenClaw Completion
+source "/home/spencer/.openclaw/completions/openclaw.bash"
