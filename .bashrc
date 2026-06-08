@@ -125,5 +125,107 @@ fi
 unset PROMPT_COMMAND 2>/dev/null
 export PATH="$HOME/.npm-global/bin:$PATH"
 
-# OpenClaw Completion
-source "/home/spencer/.openclaw/completions/openclaw.bash"
+# OpenClaw completion
+[ -f "$HOME/.openclaw/completions/openclaw.bash" ] && source "$HOME/.openclaw/completions/openclaw.bash"
+
+# opencode
+[ -d "$HOME/.opencode/bin" ] && export PATH="$HOME/.opencode/bin:$PATH"
+
+# pnpm
+export PNPM_HOME="$HOME/.local/share/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end
+
+# Google Cloud / Vertex AI (fill in your own values)
+# export GOOGLE_CLOUD_PROJECT="<your-gcp-project-id>"
+# export VERTEX_REGION="<your-region>"
+
+# --- AWS MFA helpers ---------------------------------------------------------
+# Set these to your own values (e.g. in ~/.bash_aliases or a local, untracked file):
+#   export AWS_MFA_SERIAL="arn:aws:iam::<account-id>:mfa/<device-name>"
+
+# Trade an MFA token for temporary session credentials and cache them.
+# Usage: mfa <mfa-token>
+mfa() {
+  local token=$1
+  : "${AWS_MFA_SERIAL:?set AWS_MFA_SERIAL to your MFA device ARN}"
+
+  local output
+  output=$(aws sts get-session-token \
+    --serial-number "$AWS_MFA_SERIAL" \
+    --token-code "$token") || { echo "get-session-token failed"; return 1; }
+
+  export AWS_ACCESS_KEY_ID=$(echo "$output" | jq -r '.Credentials.AccessKeyId')
+  export AWS_SECRET_ACCESS_KEY=$(echo "$output" | jq -r '.Credentials.SecretAccessKey')
+  export AWS_SESSION_TOKEN=$(echo "$output" | jq -r '.Credentials.SessionToken')
+  local expiration
+  expiration=$(echo "$output" | jq -r '.Credentials.Expiration')
+
+  local account_id
+  account_id=$(echo "$AWS_MFA_SERIAL" | cut -d: -f5)
+  local cache_dir="$HOME/.aws-mfa-cache"
+  mkdir -p "$cache_dir"
+  cat > "$cache_dir/$account_id" <<EOF
+# AWS MFA session for account $account_id; do not commit.
+export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+export AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN
+# expires:${expiration}
+EOF
+  chmod 600 "$cache_dir/$account_id"
+
+  echo "MFA session active until $expiration"
+}
+
+# Log into another AWS account using a role + MFA in one step.
+# Usage: assume-role <account-id> <role-name> <mfa-token> [session-name]
+assume-role() {
+  local account_id=$1
+  local role_name=$2
+  local token=$3
+  local session_name=${4:-cli-session}
+  : "${AWS_MFA_SERIAL:?set AWS_MFA_SERIAL to your MFA device ARN}"
+
+  local role_arn="arn:aws:iam::${account_id}:role/${role_name}"
+
+  # Clear any stale session vars so the base IAM user creds are used for the call
+  unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN
+
+  local creds
+  creds=$(aws sts assume-role \
+    --role-arn "$role_arn" \
+    --role-session-name "$session_name" \
+    --serial-number "$AWS_MFA_SERIAL" \
+    --token-code "$token" \
+    --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken,Expiration]' \
+    --output text) || { echo "assume-role failed"; return 1; }
+
+  export AWS_ACCESS_KEY_ID=$(echo "$creds" | awk '{print $1}')
+  export AWS_SECRET_ACCESS_KEY=$(echo "$creds" | awk '{print $2}')
+  export AWS_SESSION_TOKEN=$(echo "$creds" | awk '{print $3}')
+  echo "Assumed ${role_arn} until $(echo "$creds" | awk '{print $4}')"
+}
+# -----------------------------------------------------------------------------
+
+# Rust / cargo
+[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
+
+# nvm
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f "$HOME/google-cloud-sdk/path.bash.inc" ]; then . "$HOME/google-cloud-sdk/path.bash.inc"; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f "$HOME/google-cloud-sdk/completion.bash.inc" ]; then . "$HOME/google-cloud-sdk/completion.bash.inc"; fi
+
+# Java 17 (added for Synthea/Gradle)
+if [ -d /usr/lib/jvm/java-17-openjdk-amd64 ]; then
+  export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+  export PATH="$JAVA_HOME/bin:$PATH"
+fi
