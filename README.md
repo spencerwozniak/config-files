@@ -4,6 +4,7 @@ Personal configuration files.
 
 - [`nvim/`](nvim/) — Neovim configuration (see below)
 - [`.bashrc`](.bashrc) — Bash configuration
+- [`settings.json`](settings.json) — Windows Terminal configuration
 
 ---
 
