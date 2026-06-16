@@ -383,16 +383,24 @@ require('lazy').setup({
 
       -- [[ Configure Telescope ]]
       -- See `:help telescope` and `:help telescope.setup()`
+      -- Filenames matching this regex are shown even when .gitignore hides them
+      -- (so secrets / tokens / env files can be found and edited).
+      local allow_ignored = 'secret|token|\\.env'
+
       require('telescope').setup {
-        -- You can put your default mappings / updates / etc. in here
-        --  All the info you're looking for is in `:help telescope.setup()`
-        --
-        -- defaults = {
-        --   mappings = {
-        --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
-        --   },
-        -- },
-        -- pickers = {}
+        pickers = {
+          find_files = {
+            -- Respect .gitignore by default (keeps node_modules/.next/cache hidden),
+            -- but re-include any gitignored files whose name matches `allow_ignored`.
+            find_command = {
+              'sh',
+              '-c',
+              '{ fd --type f --hidden --strip-cwd-prefix --exclude .git; '
+                .. 'fd --type f --hidden --no-ignore --strip-cwd-prefix --exclude .git --exclude node_modules '
+                .. "'" .. allow_ignored .. "'; } | sort -u",
+            },
+          },
+        },
         extensions = {
           ['ui-select'] = {
             require('telescope.themes').get_dropdown(),

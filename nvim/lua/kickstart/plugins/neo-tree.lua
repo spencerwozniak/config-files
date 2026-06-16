@@ -15,6 +15,16 @@ return {
   },
   opts = {
     filesystem = {
+      filtered_items = {
+        hide_dotfiles = true,
+        hide_gitignored = true,
+        -- Always show secrets / tokens / env files, even if gitignored or dotfiles.
+        always_show_by_pattern = {
+          '*secret*',
+          '*token*',
+          '*.env*',
+        },
+      },
       window = {
         mappings = {
           ['\\'] = 'close_window',
