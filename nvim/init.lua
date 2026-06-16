@@ -383,22 +383,26 @@ require('lazy').setup({
 
       -- [[ Configure Telescope ]]
       -- See `:help telescope` and `:help telescope.setup()`
-      -- Filenames matching this regex are shown even when .gitignore hides them
-      -- (so secrets / tokens / env files can be found and edited).
-      local allow_ignored = 'secret|token|\\.env'
-
       require('telescope').setup {
+        defaults = {
+          -- Don't respect .gitignore (so secrets / .env / token files stay
+          -- searchable), but always hide these build/dependency/cache dirs.
+          file_ignore_patterns = {
+            'node_modules/',
+            '%.next/',
+            'dist/',
+            'build/',
+            'venv/',
+            '%.venv/',
+            '__pycache__/',
+            '%.cache/',
+            '%.git/',
+          },
+        },
         pickers = {
           find_files = {
-            -- Respect .gitignore by default (keeps node_modules/.next/cache hidden),
-            -- but re-include any gitignored files whose name matches `allow_ignored`.
-            find_command = {
-              'sh',
-              '-c',
-              '{ fd --type f --hidden --strip-cwd-prefix --exclude .git; '
-                .. 'fd --type f --hidden --no-ignore --strip-cwd-prefix --exclude .git --exclude node_modules '
-                .. "'" .. allow_ignored .. "'; } | sort -u",
-            },
+            hidden = true, -- show dotfiles (.env, etc.)
+            no_ignore = true, -- don't skip gitignored files
           },
         },
         extensions = {
