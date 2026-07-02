@@ -388,6 +388,8 @@ require('lazy').setup({
           -- Don't respect .gitignore (so secrets / .env / token files stay
           -- searchable), but always hide these build/dependency/cache dirs.
           file_ignore_patterns = {
+            'worktrees/',
+            '%.pnpm%-store/',
             'node_modules/',
             '%.next/',
             'dist/',

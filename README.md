@@ -5,6 +5,11 @@ Personal configuration files.
 - [`nvim/`](nvim/) — Neovim configuration (see below)
 - [`.bashrc`](.bashrc) — Bash configuration
 - [`settings.json`](settings.json) — Windows Terminal configuration
+- [`.ripgreprc`](.ripgreprc) — global ripgrep config (loaded via `RIPGREP_CONFIG_PATH`, set in `.bashrc`);
+  hides `*worktrees/` and `*.pnpm-store/` dirs from all `rg` searches, even with `--no-ignore`
+- [`.config/git/ignore`](.config/git/ignore) — global gitignore (same dirs, plus local Claude settings)
+- [`.config/fd/ignore`](.config/fd/ignore) — ignore file for `fd`; fd < 8.1 doesn't read a global
+  ignore file, so `.bashrc` aliases `fd` to pass it via `--ignore-file`
 
 ---
 

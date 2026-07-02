@@ -229,3 +229,8 @@ if [ -d /usr/lib/jvm/java-17-openjdk-amd64 ]; then
   export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
   export PATH="$JAVA_HOME/bin:$PATH"
 fi
+
+# Global ripgrep config (ignore *worktrees/, *.pnpm-store/, etc.)
+export RIPGREP_CONFIG_PATH="$HOME/.ripgreprc"
+# fd 7.x has no global ignore file support (added in fd 8.1) — pass it explicitly
+alias fd='fd --ignore-file ~/.config/fd/ignore'

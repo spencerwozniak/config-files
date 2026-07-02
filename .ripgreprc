@@ -1,0 +1,4 @@
+# Global ripgrep config (loaded via RIPGREP_CONFIG_PATH in ~/.bashrc)
+# Skip git worktree checkouts everywhere, even with --no-ignore
+--glob=!**/*worktrees/**
+--glob=!**/*.pnpm-store/**
