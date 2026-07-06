@@ -2,6 +2,12 @@
 
 Personal configuration files.
 
+> **Environment:** these configs target **WSL2** (Ubuntu 20.04 / glibc 2.31) running under
+> Windows. Some settings are WSL2-specific — notably the Neovim clipboard is wired to the
+> Windows clipboard via `clip.exe` / `powershell.exe`, and the pinned Neovim version is
+> dictated by the WSL distro's glibc (see the Neovim section). On a non-WSL machine these
+> parts either no-op or need adjusting.
+
 - [`nvim/`](nvim/) — Neovim configuration (see below)
 - [`.bashrc`](.bashrc) — Bash configuration
 - [`settings.json`](settings.json) — Windows Terminal configuration
@@ -22,6 +28,12 @@ This configuration is based on **[kickstart.nvim](https://github.com/nvim-lua/ki
   (`termguicolors` is off). gruvbox-material is installed but not loaded — see the
   comments in `nvim/init.lua` to switch back.
 - **neo-tree** file explorer is enabled (toggle with `\`).
+- The **mouse is disabled** (`vim.opt.mouse = ''`) so terminal click-drag selection works normally.
+- **Clipboard is routed through the Windows clipboard** (WSL2) via a `vim.g.clipboard`
+  provider using `clip.exe` (copy) and `powershell.exe` Get-Clipboard (paste), so yank/paste
+  in Neovim share the same clipboard as the rest of Windows. This depends on running under
+  WSL2; on another platform, remove the `vim.g.clipboard` block and `unnamedplus` will fall
+  back to the native clipboard.
 - Plugin versions are **pinned** via `nvim/lazy-lock.json` (see the compatibility note below).
 
 ### ⚠️ Important: Neovim version
