@@ -58,7 +58,10 @@ fi
 
 # Prompt: every non-printing sequence must be in \[ \] so readline/history length is correct.
 # Using \033 (not \e) for portability. Prevents up-arrow history display bugs.
-export PS1='[ \[\033[0;32m\]\u \[\033[0;34m\]\W \[\033[0m\]]\[\033[0m\]$ '
+# `1;` is the bold attribute (`0;` was normal intensity); the leading \033[1m bolds
+# the brackets too. The reset lands before the `$`, so both it and typed input
+# stay unbolded.
+export PS1='\[\033[1m\][ \[\033[1;32m\]\u \[\033[1;34m\]\W \[\033[0;1m\]]\[\033[0m\]$ '
 
 # if [ "$color_prompt" = yes ]; then
 #     PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
