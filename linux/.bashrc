@@ -125,6 +125,14 @@ fi
 unset PROMPT_COMMAND 2>/dev/null
 export PATH="$HOME/.npm-global/bin:$PATH"
 
+# ~/.local/bin for user-installed binaries — notably the `fdfind` -> `fd` symlink
+# Telescope expects. Ubuntu's default .profile only adds this for login shells,
+# so set it here too; the guard keeps it from stacking up on nested shells.
+case ":$PATH:" in
+  *":$HOME/.local/bin:"*) ;;
+  *) export PATH="$HOME/.local/bin:$PATH" ;;
+esac
+
 # OpenClaw completion
 [ -f "$HOME/.openclaw/completions/openclaw.bash" ] && source "$HOME/.openclaw/completions/openclaw.bash"
 
