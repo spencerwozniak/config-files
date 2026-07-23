@@ -1,0 +1,23 @@
+[global_config]
+  ask_before_closing = never
+  detachable_tabs = False
+[keybindings]
+  cycle_next = None
+  cycle_prev = None
+  split_horiz = <Alt>underscore
+  split_vert = <Alt>plus
+  next_tab = <Primary>Tab
+  prev_tab = <Primary><Shift>Tab
+[profiles]
+  [[default]]
+    background_color = "#ffffff"
+    foreground_color = "#000000"
+[layouts]
+  [[default]]
+    [[[window0]]]
+      type = Window
+      parent = ""
+    [[[child1]]]
+      type = Terminal
+      parent = window0
+[plugins]

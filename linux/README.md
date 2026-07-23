@@ -12,6 +12,8 @@ setup see [`../wsl/`](../wsl/); the [root README](../README.md) explains how the
   settings)
 - [`.config/fd/ignore`](.config/fd/ignore) — ignore file for `fd`; unlike the WSL config this
   is read automatically, no alias needed
+- [`gnome/`](gnome/) — GNOME desktop settings, dumped from `dconf` (see below)
+- [`terminator/`](terminator/) — Terminator terminal emulator config (see below)
 
 There's no Windows Terminal `settings.json` here — that file only applies to the WSL box.
 
@@ -110,3 +112,96 @@ cp .config/git/ignore ~/.config/git/ignore
 
 Telescope searches relative to Neovim's current working directory (`:pwd`) — launch `nvim`
 from the directory you want to search, or `:cd` there first.
+
+---
+
+## GNOME Config
+
+GNOME stores its settings in a binary `dconf` database, not plain files, so
+[`gnome/gnome-settings.dconf`](gnome/gnome-settings.dconf) is a text dump of the `/org/gnome/`
+subtree produced with `dconf dump`. It captures the desktop appearance and behavior worth
+carrying between machines:
+
+- **Interface** — `brown` accent color, hot corners off, `Ubuntu Sans` / `Ubuntu Sans Mono`
+  fonts, `Yaru` cursor theme
+- **Shell** — favorite (dock) apps, enabled extensions (`ding`, `ubuntu-dock`,
+  `tiling-assistant`), dock pinned to the bottom, `performance` power profile
+- **Custom keybinding** — <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>T</kbd> launches `terminator`
+  (under `settings-daemon/plugins/media-keys`)
+- **Tiling / mutter** — GNOME edge-tiling disabled in favor of the `tiling-assistant`
+  extension
+- **Nautilus, power, background, screensaver** and other everyday preferences
+
+The dump is deliberately **scrubbed of personal and machine-specific data** — the
+`evolution-data-server` calendar cache, window geometry, saved file-chooser paths, and
+night-light GPS coordinates are all excluded, so it's safe to commit and reapply anywhere.
+
+### Prerequisites
+
+`dconf` ships with GNOME; nothing extra to install. The extensions referenced above
+(`tiling-assistant`, `ubuntu-dock`, `ding`) come with Ubuntu's GNOME session. Terminator must
+be installed for the custom keybinding to do anything (see the next section).
+
+### Apply the settings
+
+```sh
+# back up your current GNOME settings first, so you can roll back
+dconf dump /org/gnome/ > ~/gnome-settings.backup.dconf
+
+# load this repo's settings into the /org/gnome/ subtree
+dconf load /org/gnome/ < gnome/gnome-settings.dconf
+```
+
+Changes apply immediately for most keys; log out and back in if the dock, extensions, or
+fonts don't fully refresh.
+
+To roll back: `dconf load /org/gnome/ < ~/gnome-settings.backup.dconf`.
+
+### Re-dump after changing settings
+
+When you tweak GNOME and want to capture it, re-run the same scrubbed dump so personal data
+never lands in the repo:
+
+```sh
+dconf dump /org/gnome/ \
+  | awk 'BEGIN{for(s in a);split("evolution-data-server evolution-data-server/calendar control-center nautilus/window-state portal/filechooser/com.google.Chrome settings-daemon/plugins/color",k," ");for(i in k)skip[k[i]]=1}
+         /^\[/{sect=substr($0,2,length($0)-2);drop=(sect in skip)}
+         drop{next}
+         /^window-size=|^window-state=|^night-light-last-coordinates=/{next}
+         {print}' \
+  > gnome/gnome-settings.dconf
+```
+
+---
+
+## Terminator Config
+
+[`terminator/config`](terminator/config) is the [Terminator](https://gnome-terminator.org/)
+terminal-emulator config. Highlights:
+
+- White background / black foreground default profile
+- Splits: <kbd>Alt</kbd>+<kbd>_</kbd> horizontal, <kbd>Alt</kbd>+<kbd>+</kbd> vertical
+- Tabs: <kbd>Ctrl</kbd>+<kbd>Tab</kbd> next, <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Tab</kbd>
+  previous
+- Never prompt before closing; tabs not detachable
+
+Pair it with the GNOME custom keybinding above to launch Terminator with
+<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>T</kbd>.
+
+### Prerequisites
+
+```sh
+sudo apt-get update && sudo apt-get install -y terminator
+```
+
+### Install the config
+
+```sh
+# back up any existing config first
+[ -e ~/.config/terminator/config ] && mv ~/.config/terminator/config ~/.config/terminator/config.bak
+
+mkdir -p ~/.config/terminator
+cp terminator/config ~/.config/terminator/config
+```
+
+Terminator reads the file on next launch — no reload command needed.
